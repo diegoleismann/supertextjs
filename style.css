@@ -1,0 +1,58 @@
+html, body{
+    margin: 0px;padding:0px;
+    font-family: 'Raleway';
+}
+.wrapper{
+    background-color: #ddd;
+}
+.container{
+    width:1024px;
+    margin: 0px auto;
+}
+.content{
+    width:70%;
+    float:left;
+}
+.sidebar{
+    width:30%;
+    float:left;
+}
+.clear{
+    clear: both;
+}
+.header{
+    background-color: #333;
+    color:#fff;
+}
+.logo{
+    height:20px;
+    width:auto;
+    display: inline-block;
+    margin: 5px;
+}
+.menu{
+    
+}
+.menu ul{
+    margin: 0px;padding:0px;
+}
+.menu ul li{
+    display: inline-block;
+    font-size: 15px;
+    text-transform: uppercase;
+    padding: 5px;
+    vertical-align: middle;
+}
+.post{
+    background-color: #fff;
+    margin: 20px 0px 20px;
+    padding: 20px;
+}
+.post h1{
+    margin: 0px;
+    margin-bottom: 30px;
+}
+.widgets{
+    background-color: #ccc;
+    margin:20px 0px 20px
+}
