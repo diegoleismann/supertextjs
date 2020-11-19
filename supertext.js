@@ -1,7 +1,11 @@
 var supertext = {};
-var STORE = {}
-supertext.store = function(dataStore){
-    STORE = dataStore;
+var supertext_store = {}
+supertext.store = function(component){
+    if(!supertext_store.init){
+        var dataStore = component.data;
+        dataStore.init = 1;
+        supertext_store = dataStore;
+    }
 }
 supertext.events = []
 supertext.tags = [
@@ -119,6 +123,8 @@ supertext.tags = [
   "video",
   "wbr"
 ];
+
+//superActions
 supertext.isValidTag = function(tag) {
   var valid = false;
   for (var i in supertext.tags) {
@@ -129,31 +135,34 @@ supertext.isValidTag = function(tag) {
     }
   }
 };
-supertext.render =function(){
-    supertext.data("html", template());
-    supertext.body(supertext.data('contador'));
-}
-supertext.data = function(get = null, set =null){
-    if(get && set){
-        if(STORE[get]){
-            STORE[get] = set;  
-        }else{
-            STORE[get] = ""
-            STORE[get] = set; 
-        }
-    }else
-    if(get){
-        return STORE[get]
+
+supertext.getStore = function(key = null){
+    if(key && supertext_store[key]){
+        return supertext_store[key]
     }else{
         console.error("Store is null");
+        return '';
     }
 }
+supertext.setStore =function(key = null, content = null){
+    if(!key){
+        console.error('store_key is undefined')
+    }
+    if(key && content){
+        if(!supertext_store[key]){
+            supertext_store[key] = ""
+        }
+            
+        supertext_store[key] = content; 
+    }
+} 
+
+//SuperTags
 supertext.event = function(eventName,action){
-    var data = supertext.data;
     return {
         type:'event',
         eventName: eventName,
-        action: function(){ action(data); supertext.render() } 
+        action: action
     }
 }
 supertext.attribute = function(name, content){
@@ -163,14 +172,36 @@ supertext.attribute = function(name, content){
         content:content
     }
 }
+supertext.data = function(name){
+    return {
+        type:'data',
+        name:name
+    }
+}
 
+supertext.list = function(data,template){
+    return {
+        type:'list',
+        template: template,
+        data: data
+    }
+}
+
+supertext.eventData = function(key, content){
+    console.log(key, content)
+    if(!content && key){
+        return supertext.getStore(key);
+    }
+    if(key && content){
+        supertext.setStore(key, content);
+    }
+}
 
 isObject = function(item){
     return typeof item == 'object';
 }   
-supertext.element = function(tag) {
+supertext.element_old = function(tag) {
   return function() {
-   
     element = document.createElement(tag);
     for(i in arguments){
         item = arguments[i]
@@ -197,10 +228,14 @@ supertext.element = function(tag) {
             element.append(item);
         }
         if(isObject(item) && item.type == 'event'){
-            element.addEventListener(item.eventName, item.action, true);
+            
         }
         if(isObject(item) && item.type == 'attribute'){
             element.setAttribute(item.name, item.content);
+        }
+        if(isObject(item) && item.type == 'data'){
+        
+            element.innerHTML = supertext.getStore(item.name);
         }
         if( typeof item == 'number'){
             element.innerHTML = item;
@@ -209,16 +244,108 @@ supertext.element = function(tag) {
     return element;
   };
 };
+supertext.element = function(tag){
+    return function() {
+        var items = []
+        for(i in arguments){
+            items.push(arguments[i])
+        }
+        return {
+            tag:tag,
+            childs:items
+        }
+    }
+}
 supertext.componentList = []
-supertext.component = function(name){
-    return function(element){
+supertext.TEMPLATES = []
+supertext.template = function(name, element){
+    supertext.TEMPLATES[name] = function(){
         return element;
     }
 }
+supertext.getTemplate = function (name){
+    return supertext.TEMPLATES[name];
+} 
+supertext.componentList = []
+supertext.component = function(name,options){
+    options.name = name;
+    supertext.componentList.push(options);
+}
+supertext.getComponent = function(name){
+    var item_component = false
+    for( i in supertext.componentList){
+        var item = supertext.componentList[i]
+        if(name = item.name){
+            item_component = item;
+            break;
+        };   
+    }
+    return item_component;
+}
 supertext.body = function(element){
-    supertext.clear();
-    document.body.append(element);
+   supertext.clear()
+   document.body.append(element)
+    
 }
 supertext.clear = function(){
     document.body.innerHTML ='';
+}
+supertext.appendChilds = function(element,childs, component){
+    console.debug('STORE',supertext_store);
+    for(i in childs){
+        item = childs[i]
+        if(typeof item == 'string'){
+            var key = item.charAt(0);
+            var content = '' 
+            switch(key){
+                case '.':
+                    content = item.replace(".", "")
+                    element.classList.add(content); 
+                    break;
+                case '#':
+                    content = item.replace("#", "")
+                    element.id = content;
+                    break;
+                default:
+                    element.append(document.createTextNode(item));
+                    break;
+
+            }    
+        }
+        if(item.type == 'data'){
+            console.debug('DATA',item);
+            var item_data = supertext.getStore(item.name);
+            element.append(document.createTextNode(item_data));
+        }
+        if(item.type == 'event'){
+            var action = function(){}
+            if(typeof item.action == 'string'){
+                if(component.actions && 
+                component.actions[item.action] && 
+                typeof component.actions[item.action] == 'function'
+                ){
+                    action = component.actions[item.action]
+                }
+            }
+            if(typeof item.action == 'function'){
+                action = item.action;
+            }
+            element.addEventListener(item.eventName, function(){action(supertext.eventData)}, true);
+        }
+        
+        if(isObject(item.tag) && supertext.isValidTag(item.tag)){
+            var item_element = document.createElement(item.tag)
+            item_element = supertext.appendChilds(item_element,item.childs, component);
+            element.append(item_element);
+        }
+    }
+    return element;
+}
+supertext.render = function(name){
+    var component = supertext.getComponent(name);
+    var tag = component.template.tag
+    var element = document.createElement(tag)
+    supertext.store(component) 
+    element = supertext.appendChilds(element, component.template.childs, component);
+    return element;
 }

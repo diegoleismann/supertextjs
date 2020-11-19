@@ -9,82 +9,93 @@
     <script src="./assets/js/highlight.min.js"></script>
     <script type="text/javascript" src="supertext.js"></script>
     <link rel="stylesheet" href="style.css">
+    <script type="text/javascript">
+            
+      var body = supertext.body; 
+      var e = supertext.element;
+      var attr = supertext.attribute;
+      var event = supertext.event;
+      var store = supertext.store;
+      var data = supertext.data;
+      var template =supertext.template;
+      var component = supertext.component;
+      var render = supertext.render;
+      var list = supertext.list;
+      var div = e("div");
+      var ul = e("ul");
+      var li = e("li");
+      var img = e("img");
+      var h1 = e("h1");
+      var p = e("p");
+      var pre = e("pre");
+      var code = e("code");
+      var a = e("a")
+      
+      var highlight = function(){
+        document.querySelectorAll('pre code').forEach((block) => {
+          console.log(block)
+          hljs.highlightBlock(block);
+        });
+      }
+      
+      var template = div(data("mensagem"), event('click', 'add'));
+
+      var menu_item = li(
+        a(
+          attr('href', data('link')),
+          data('name')
+        )
+      )
+
+      var itens = list(data('items'), menu_item)
+      var menu = ul(itens);
+
+      console.log(itens);
+      
+      component('menu', 
+        {
+          template: template,
+          data:{
+            mensagem:''
+          }
+        }
+      )
+
+      component('body',{
+        template:template,
+        data:{
+          mensagem:"Novo titulo",
+          count:1,
+          items:[
+            {
+              href:"#home",
+              name:"Home"
+            },
+            {
+              href:"#about",
+              name:"About"
+            }
+          ]
+        },
+        actions:{
+          render:function(){
+
+          },
+          add:function(data, actions){
+            var count = data('count');
+            count++;
+            data('count', count)
+            data('mensagem', 'agora tu veio')
+            body(render('body'))
+          }
+        }
+      })
+
+      window.onload = function(){
+        body(render('body'))
+      }
+      
+      </script>
 </head>
-<body>
-
-<script type="text/javascript">         
-var body = supertext.body; 
-var e = supertext.element;
-var attr = supertext.attribute;
-var event = supertext.event;
-var store = supertext.store;
-var data = supertext.data;
-
-var div = e("div");
-var ul = e("ul");
-var li = e("li");
-var img = e("img");
-var h1 = e("h1");
-var p = e("p");
-var pre = e("pre");
-var code = e("code");
-var a = e("a")
-
-var LinkDocumentacao = a(
-  ".link-menu",
-  attr('href', "#documentacao")
-)
-var LinkBlog = a(
-  ".link-menu",
-  attr('href',"#blog")
-)
-var Menu = div('.menu', 
-    ul(
-      li(div('.logo', "supertext")),
-      li("Conheça"),
-      li("Serviços"),
-      li("Novidades"),
-      li("Contato")
-    )  
-);
-store({"contador":1})
-var Header = div('.header',div('.container', Menu))
-var clickCode = function(data){
-  data("contador", (data("contador")+1))
-  console.log(data("contador"))
-}
-var Content = div(
-  h1('{{title}}'), 
-  p("Javascript") , 
-  pre(
-    code('.language-javascript', STORE['contador'], event('click', clickCode))
-  )
-);
-var Sidebar = div('.widgets', "Sidebar");
-var Home = div('#home',
-  div("home")
-)
-var Layout = div('.layout', 
-  div('.container', 
-    div(".content",div('.post',Content)), 
-    div(".sidebar", Sidebar),
-    div(".clear")
-  )
-);
-console.log(typeof data("contador")) 
-function template(){
-  return div('.wrapper', Header, Home, Layout);
-}
-data("html", template());
-window.onload = function(){
-    console.log(data("contador"))
-    body(data("html"));
-    document.querySelectorAll('pre code').forEach((block) => {
-    console.log(block)
-    hljs.highlightBlock(block);
-  });
-};
-</script>
-    
-</body>
+<body></body>
 </html>
