@@ -134,6 +134,7 @@ supertext.isValidTag = function(tag) {
       break;
     }
   }
+  return valid;
 };
 
 supertext.getStore = function(key = null){
@@ -188,7 +189,6 @@ supertext.list = function(data,template){
 }
 
 supertext.eventData = function(key, content){
-    console.log(key, content)
     if(!content && key){
         return supertext.getStore(key);
     }
@@ -275,7 +275,7 @@ supertext.getComponent = function(name){
     var item_component = false
     for( i in supertext.componentList){
         var item = supertext.componentList[i]
-        if(name = item.name){
+        if(name == item.name){
             item_component = item;
             break;
         };   
@@ -291,7 +291,7 @@ supertext.clear = function(){
     document.body.innerHTML ='';
 }
 supertext.appendChilds = function(element,childs, component){
-    console.debug('STORE',supertext_store);
+    var data = component.data;
     for(i in childs){
         item = childs[i]
         if(typeof item == 'string'){
@@ -313,8 +313,7 @@ supertext.appendChilds = function(element,childs, component){
             }    
         }
         if(item.type == 'data'){
-            console.debug('DATA',item);
-            var item_data = supertext.getStore(item.name);
+            var item_data = data[item.name];
             element.append(document.createTextNode(item_data));
         }
         if(item.type == 'event'){
@@ -332,8 +331,27 @@ supertext.appendChilds = function(element,childs, component){
             }
             element.addEventListener(item.eventName, function(){action(supertext.eventData)}, true);
         }
-        
-        if(isObject(item.tag) && supertext.isValidTag(item.tag)){
+        if(item.type == 'list'){
+            
+            var list_data = data[item.data];
+            var v_template = item.template
+            for(var i in list_data){
+                var list_data_item = list_data[i]
+                
+
+                var v_component = {
+                    actions: component.actions,
+                    data:list_data_item
+                }
+                
+                
+                var v_element = document.createElement(v_template.tag)
+                v_element = supertext.appendChilds(v_element, v_template.childs, v_component);
+                element.append(v_element);    
+            
+            }
+        }
+        if(isObject(item) && supertext.isValidTag(item.tag)){    
             var item_element = document.createElement(item.tag)
             item_element = supertext.appendChilds(item_element,item.childs, component);
             element.append(item_element);
@@ -342,10 +360,10 @@ supertext.appendChilds = function(element,childs, component){
     return element;
 }
 supertext.render = function(name){
+    
     var component = supertext.getComponent(name);
     var tag = component.template.tag
     var element = document.createElement(tag)
-    supertext.store(component) 
     element = supertext.appendChilds(element, component.template.childs, component);
     return element;
 }

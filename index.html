@@ -17,7 +17,7 @@
       var event = supertext.event;
       var store = supertext.store;
       var data = supertext.data;
-      var template =supertext.template;
+      var template = supertext.template;
       var component = supertext.component;
       var render = supertext.render;
       var list = supertext.list;
@@ -42,21 +42,29 @@
 
       var menu_item = li(
         a(
-          attr('href', data('link')),
-          data('name')
+          data('nome')
         )
       )
+      // when({"active":true}, div('ativo'))
 
-      var itens = list(data('items'), menu_item)
-      var menu = ul(itens);
-
-      console.log(itens);
+      /*
       
+      type:when
+      condition:arguments[0]
+      element:arguments[1]
+      
+      if(data[condition.key] == condition.content){
+        return child
+      }
+      
+      */
+     
+
       component('menu', 
         {
-          template: template,
+          template: ul(list('items', menu_item)),
           data:{
-            mensagem:''
+            items:[{nome:'home'},{nome:"about"}]
           }
         }
       )
@@ -64,16 +72,16 @@
       component('body',{
         template:template,
         data:{
-          mensagem:"Novo titulo",
+          mensagem:"Novo titulo 2",
           count:1,
           items:[
             {
               href:"#home",
-              name:"Home"
+              nome:"Home"
             },
             {
               href:"#about",
-              name:"About"
+              nome:"About"
             }
           ]
         },
@@ -92,7 +100,8 @@
       })
 
       window.onload = function(){
-        body(render('body'))
+        console.log(render('menu'))
+        body(render('menu'))
       }
       
       </script>
